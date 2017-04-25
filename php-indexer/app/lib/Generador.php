@@ -91,11 +91,6 @@ class Generador
         $this->textoIngresado = $POST;
     }
 
-    private function nextIteration(string $aBuscar)
-    {
-        return stripos($this->getTextoIngresado(), $aBuscar, $this->getPosicion());
-    }
-
     /**
      * @return string
      */
