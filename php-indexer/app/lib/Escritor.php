@@ -26,6 +26,7 @@ class Escritor
         $cantSecciones = $secciones->length();
         $texto = "";
         for ($i = 0; $i < $cantSecciones; $i++) {
+            echo "Escritura paso: " . $i ."</br>";
             try {
                 $texto = $texto . $secciones->getItem($i)->getTitulo();
             } catch (KeyInvalidException $e) {

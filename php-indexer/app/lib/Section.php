@@ -39,9 +39,8 @@ class Section
     {
         $textoInicio = $this->construccionNivelHeaderMD(); //genero qué texto es mi inicio de la sección
         $tamIndice = strlen($textoInicio); //calculo el tamaño de # del índice
-        $posicionInicial = stripos($this->getMateriaPrima(), $textoInicio, $this->getUbicacion()); //calculo la posición inicial en base a la primer instancia del #
-        $posicionInicialALeer = $posicionInicial;
-        $posicionFinalTitulo = stripos($this->getMateriaPrima(), PHP_EOL, $posicionInicial);  //calculo dónde termina el título con el \n
+        $posicionInicialALeer = stripos($this->getMateriaPrima(), $textoInicio, $this->getUbicacion()); //calculo la posición inicial en base a la primer instancia del #
+        $posicionFinalTitulo = stripos($this->getMateriaPrima(), PHP_EOL, $posicionInicialALeer);  //calculo dónde termina el título con el \n
         $posicionFinalSeccion = stripos($this->getMateriaPrima(), $textoInicio, $posicionFinalTitulo); //calculo la posición final en base a la primer instancia de \n posterior a la primer instancia de #
         $lectorTitulo = new Lector($posicionInicialALeer, $posicionFinalTitulo, $this->getMateriaPrima());
         $posicionInicialALeer = stripos($this->getMateriaPrima(), $textoInicio, $posicionFinalTitulo); //corro la posicion inicial para que el texto no incluya al título
@@ -50,12 +49,14 @@ class Section
         $recorteTexto = $lectorTexto->getTexto();
         $this->setTitulo($recorteTitulo);
         $this->setTexto($recorteTexto);
-        $this->setPosSubNivel($this->buscadorInterno($posicionInicial));
-        $this->setUbicacion($posicionFinalSeccion + 1);
+        $this->setPosSubNivel($this->buscadorInterno($posicionInicialALeer));
+        $this->setUbicacion($posicionFinalSeccion);
         $this->setPosicionFinalSeccion($posicionFinalSeccion);
         if($this->getPosSubNivel() > 0)
         {
             $this->setSuperior($this->getId());
+        }else{
+            $this->setSuperior(0);
         }
     }
 

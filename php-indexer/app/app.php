@@ -31,7 +31,7 @@ $textoAEscribir = $escritor->getTexto();
 <body>
 <h1>TEXTO GENERADO</h1>
 <textarea readonly>
-    <? echo $textoAEscribir; ?>
+    <?php echo $textoAEscribir; ?>
 </textarea>
 </body>
 </html>

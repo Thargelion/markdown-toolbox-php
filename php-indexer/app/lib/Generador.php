@@ -7,11 +7,11 @@ namespace app\lib;
  * User: maximiliano
  * Date: 10/04/17
  * Time: 12:57
- */
+
 use app\lib\Collection;
 use app\lib\KeyInvalidException;
 use app\lib\Section;
-
+ */
 
 include_once __DIR__ . '/Lector.php';
 include_once __DIR__ . '/Collection.php';
@@ -55,12 +55,6 @@ class Generador
                 $pos = $coleSecciones->getItem($i)->getUbicacion();
             } catch (KeyInvalidException $e) {
                 print "El while de generador no encuentra secciones! x.x";
-            }
-            if($coleSecciones->getItem($i)->getPosSubNivel())
-            {
-                $coleSecciones->addItem(new Section($textoIngresado, $nivel + 1, $coleSecciones->getItem($i)->getPosSubNivel(), $i));
-            }else{
-                break;
             }
             $i++;
             echo "Ubicacion luego de cargar: " . $pos . "</br>";
