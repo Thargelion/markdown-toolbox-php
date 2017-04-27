@@ -4,8 +4,7 @@ namespace app\lib;
 
 //use app\lib\Lector;
 
-/**
- * Created by PhpStorm.
+/*
  * User: maximiliano
  * Date: 10/04/17
  * Time: 16:25
@@ -13,67 +12,74 @@ namespace app\lib;
  */
 class Section
 {
-    private $nivel = 1;
+    private $nivel = 0;
     private $titulo = "";
     private $texto = "";
-    private $ubicacion = 0; //posición del plano donde se encuentra la sección a buscar
+    private $ubicacionInicial = 0; //posición del plano donde se encuentra la sección a buscar
     private $materiaPrima = "";
     private $posicionFinalSeccion = 0;
-    private $posicionFinalFinal;
-    private $posSubNivel = 0;
     private $superior;
     private $id = 0;
+    private $nivelHeaderMD = "";
 
-    public function __construct($materiaPrima, $nivel, $ubicacion, $id)
+    public function __construct(string $materiaPrima, int $nivel, int $ubicacion, int $id, int $madre)
     {
-        $this->setPosSubNivel(0);
+        $this->setSuperior($madre);
         $this->setId($id);
-        $this->setPosicionFinalFinal(strripos($this->getMateriaPrima(), PHP_EOL)); //calculo la posición final en base a la primer instancia de \n posterior a la primer instancia de #
-        $this->setUbicacion($ubicacion);
+        $this->setUbicacionInicial($ubicacion);
         $this->setMateriaPrima($materiaPrima);
         $this->setNivel($nivel);
+        $this->construccionNivelHeaderMD();
         $this->autoCompletar();
     }
 
     private function autoCompletar()
     {
-        $textoInicio = $this->construccionNivelHeaderMD(); //genero qué texto es mi inicio de la sección
-        $tamIndice = strlen($textoInicio); //calculo el tamaño de # del índice
-        $posicionInicialALeer = stripos($this->getMateriaPrima(), $textoInicio, $this->getUbicacion()); //calculo la posición inicial en base a la primer instancia del #
-        $posicionFinalTitulo = stripos($this->getMateriaPrima(), PHP_EOL, $posicionInicialALeer);  //calculo dónde termina el título con el \n
-        $posicionFinalSeccion = stripos($this->getMateriaPrima(), $textoInicio, $posicionFinalTitulo); //calculo la posición final en base a la primer instancia de \n posterior a la primer instancia de #
-        $lectorTitulo = new Lector($posicionInicialALeer, $posicionFinalTitulo, $this->getMateriaPrima());
-        $posicionInicialALeer = stripos($this->getMateriaPrima(), $textoInicio, $posicionFinalTitulo); //corro la posicion inicial para que el texto no incluya al título
-        $lectorTexto = new Lector($posicionInicialALeer, $posicionFinalSeccion, $this->getMateriaPrima());
-        $recorteTitulo = $lectorTitulo->getTexto();
-        $recorteTexto = $lectorTexto->getTexto();
-        $this->setTitulo($recorteTitulo);
-        $this->setTexto($recorteTexto);
-        $this->setPosSubNivel($this->buscadorInterno($posicionInicialALeer));
-        $this->setUbicacion($posicionFinalSeccion);
-        $this->setPosicionFinalSeccion($posicionFinalSeccion);
-        if($this->getPosSubNivel() > 0)
-        {
-            $this->setSuperior($this->getId());
-        }else{
-            $this->setSuperior(0);
-        }
+        $this->setTitulo($this->completarTitulo());
+        $this->setTexto($this->completarTexto());
     }
 
-    private function construccionNivelHeaderMD(): string //construye el nivel del header md en base al nivel de la sección
+    private function completarTitulo(): string
+    {
+        $posicionFinal = $this->buscadorItineranciaSiguiente($this->getUbicacionInicial(), PHP_EOL);
+        $recorte = new Lector($this->getUbicacionInicial(), $posicionFinal, $this->getMateriaPrima());
+        $this->setUbicacionInicial($posicionFinal);
+        return $recorte->getTexto();
+    }
+
+    private function completarTexto(): string
+    {
+        $posicionInicial = $this->getUbicacionInicial() + strlen($this->getNivelHeaderMD());
+        $posicionFinal = $this->buscadorItineranciaSiguiente($posicionInicial, $this->getNivelHeaderMD());
+        $recorte = new Lector($posicionInicial, $posicionFinal, $this->getMateriaPrima());
+        return $recorte->getTexto();
+    }
+
+    private function construccionNivelHeaderMD() //construye el nivel del header md en base al nivel de la sección
     {
         $nivel = $this->getNivel();
-        $nivelHeaderMD = "";
+        $nivelHeaderMD = "#";
         for ($i = 0; $i < $nivel; $i++) {
             $nivelHeaderMD = $nivelHeaderMD . "#";
         }
-        return $nivelHeaderMD . " ";
+        $this->setNivelHeaderMD($nivelHeaderMD . " ");
     }
 
-    private function buscadorInterno($posicionInicial): int
+    private function buscadorItineranciaSiguiente($posicionInicial, $elementoABuscar): int
     {
-        $nivelABuscar = "#" . $this->construccionNivelHeaderMD();
-        return stripos($this->getMateriaPrima(), $nivelABuscar, $posicionInicial);
+        return stripos($this->getMateriaPrima(), $elementoABuscar, $posicionInicial);
+    }
+
+    public function devolucionArray(): array
+    {
+        return array(
+            'id' => $this->getId(),
+            'nivel' => $this->getNivel(),
+            'titulo' => $this->getTitulo(),
+            'texto' => $this->getTexto(),
+            'posicionFinalSeccion' => $this->getPosicionFinalSeccion(),
+            'superior' => $this->getSuperior()
+        );
     }
 
     /**
@@ -127,17 +133,17 @@ class Section
     /**
      * @return int
      */
-    public function getUbicacion(): int
+    public function getUbicacionInicial(): int
     {
-        return $this->ubicacion;
+        return $this->ubicacionInicial;
     }
 
     /**
-     * @param int $ubicacion
+     * @param int $ubicacionInicial
      */
-    public function setUbicacion(int $ubicacion)
+    public function setUbicacionInicial(int $ubicacionInicial)
     {
-        $this->ubicacion = $ubicacion;
+        $this->ubicacionInicial = $ubicacionInicial;
     }
 
     /**
@@ -172,21 +178,6 @@ class Section
         $this->posicionFinalSeccion = $posicionFinalSeccion;
     }
 
-    /**
-     * @return int
-     */
-    public function getPosSubNivel(): int
-    {
-        return $this->posSubNivel;
-    }
-
-    /**
-     * @param int $posSubNivel
-     */
-    public function setPosSubNivel(int $posSubNivel)
-    {
-        $this->posSubNivel = $posSubNivel;
-    }
 
     /**
      * @return mixed
@@ -205,22 +196,6 @@ class Section
     }
 
     /**
-     * @return mixed
-     */
-    public function getPosicionFinalFinal()
-    {
-        return $this->posicionFinalFinal;
-    }
-
-    /**
-     * @param mixed $posicionFinalFinal
-     */
-    public function setPosicionFinalFinal($posicionFinalFinal)
-    {
-        $this->posicionFinalFinal = $posicionFinalFinal;
-    }
-
-    /**
      * @return int
      */
     public function getId(): int
@@ -234,6 +209,22 @@ class Section
     public function setId(int $id)
     {
         $this->id = $id;
+    }
+
+    /**
+     * @return string
+     */
+    public function getNivelHeaderMD(): string
+    {
+        return $this->nivelHeaderMD;
+    }
+
+    /**
+     * @param string $nivelHeaderMD
+     */
+    public function setNivelHeaderMD(string $nivelHeaderMD)
+    {
+        $this->nivelHeaderMD = $nivelHeaderMD;
     }
 
 }

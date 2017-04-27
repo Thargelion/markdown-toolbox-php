@@ -7,10 +7,10 @@ namespace app\lib;
  * User: maximiliano
  * Date: 10/04/17
  * Time: 12:57
-
-use app\lib\Collection;
-use app\lib\KeyInvalidException;
-use app\lib\Section;
+ *
+ * use app\lib\Collection;
+ * use app\lib\KeyInvalidException;
+ * use app\lib\Section;
  */
 
 include_once __DIR__ . '/Lector.php';
@@ -22,67 +22,62 @@ class Generador
 {
     private $textoIngresado = '';
     private $posicion = 0;
-    public $arraySecciones = array();
-    public $arrayHeaders = array();
-    private $coleccionSecciones;
+    private $arraySecciones = array();
+    private $seccionAnterior = array();
+    private $posicionFinal = 0;
     private $numSeccion = 0;
     private $nivel = 1;
 
     public function __construct($textoIngresado) //iniciador del generador loco
     {
         $this->setTextoIngresado($textoIngresado);
+        $this->setPosicionFinal($this->getFinalDelTexto());
         $this->armadoEstructura();
+    }
+
+    private function getFinalDelTexto(): int
+    {
+        return strlen($this->getTextoIngresado()) - 1;
     }
 
     private function armadoEstructura()
     {
-        $coleSecciones = new Collection();
-        if($this->getPosicion()){
-            $pos = $this->getPosicion();
-        }else{
-            $pos = 0;
+        $validador = 1;
+        $posicion = $this->getPosicion();
+        $posicionFinal = $this->getPosicionFinal();
+        $arrayACargar = array();
+        $nivel = 1;
+        $id = 1;
+        $madre = 0;
+        while ($validador) {
+            while ($posicion < $posicionFinal) {
+                $seccionAnterior = $this->getSeccionAnterior();
+                if (!$seccionAnterior) {
+                    $seccionACargar = new Section($this->getTextoIngresado(), $nivel, $posicion, $id, $madre);
+                } else {
+                    $seccionACargar = new Section($this->getTextoIngresado(), $nivel, $posicion, $id, $seccionAnterior['id']);
+                }
+                $arrayACargar[$seccionACargar->getId()] = $seccionACargar->devolucionArray();
+                $id++;
+                $this->setSeccionAnterior($arrayACargar);
+            }
         }
-        $textoIngresado = $this->getTextoIngresado();
-        $nivel = $this->getNivel();
-        $finalDelTexto = $this->getFinalDelTexto();
-        $i = 0;
-        while ($pos < $finalDelTexto) {
-            echo "Ubicacion: " . $pos . "</br>";
-            echo "Final del texto: " . $finalDelTexto . "</br>";
-            $coleSecciones->addItem(new Section($textoIngresado, $nivel, $pos, $i));
-            echo "Texto Titulo: " . $coleSecciones->getItem($i)->getTitulo() . "</br>";
-            try {
-                $pos = $coleSecciones->getItem($i)->getUbicacion();
-            } catch (KeyInvalidException $e) {
-                print "El while de generador no encuentra secciones! x.x";
+        $this->setArraySecciones($arrayACargar);
+    }
+
+    private function ordenadoEstructura()
+    {
+        function ordenaElementos($a, $b)
+        {
+            if ($a['id'] > $b['id']) {
+                return 1;
+            } else {
+                return 0;
             }
-            $i++;
-            echo "Ubicacion luego de cargar: " . $pos . "</br>";
-            if($i > 6)
-            {
-                echo "KABUNCHE x.x";
-                die;
-            }
-        } //añade las secciones hasta que no haya más lugar para recorrer
-        $this->setPosicion($pos); //completa la posición en la que se encuentra el armador en base a la posición final de la sección cargada
-        $this->setColeccionSecciones($coleSecciones); //llena la colección con las secciones armadas
-    }
+        }
 
-    private function getFinalDelTexto()
-    {
-        $materiaPrima = $this->getTextoIngresado();
-        return strripos($materiaPrima, PHP_EOL);
-    }
-
-    public function setNumSeccion(int $numSeccion)
-    {
-        $this->numSeccion = $numSeccion;
-    }
-
-
-    public function fillTexto($POST)
-    {
-        $this->textoIngresado = $POST;
+        $secciones = $this->getArraySecciones();
+        usort($secciones, "ordenaElementos");
     }
 
     /**
@@ -134,31 +129,44 @@ class Generador
     }
 
     /**
+     * @return array
+     */
+    public function getSeccionAnterior(): array
+    {
+        return $this->seccionAnterior;
+    }
+
+    /**
+     * @param array $seccionAnterior
+     */
+    public function setSeccionAnterior(array $seccionAnterior)
+    {
+        $this->seccionAnterior = $seccionAnterior;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPosicionFinal(): int
+    {
+        return $this->posicionFinal;
+    }
+
+    /**
+     * @param int $posicionFinal
+     */
+    public function setPosicionFinal(int $posicionFinal)
+    {
+        $this->posicionFinal = $posicionFinal;
+    }
+
+
+    /**
      * @return int
      */
     public function getNumSeccion(): int
     {
         return $this->numSeccion;
-    }
-
-    /**
-     * @param int $numSeccion
-     */
-
-    /**
-     * @return array
-     */
-    public function getArrayHeaders(): array
-    {
-        return $this->arrayHeaders;
-    }
-
-    /**
-     * @param array $arrayHeaders
-     */
-    public function setArrayHeaders(array $arrayHeaders)
-    {
-        $this->arrayHeaders = $arrayHeaders;
     }
 
     /**
@@ -176,22 +184,5 @@ class Generador
     {
         $this->nivel = $nivel;
     }
-
-    /**
-     * @return mixed
-     */
-    public function getColeccionSecciones()
-    {
-        return $this->coleccionSecciones;
-    }
-
-    /**
-     * @param mixed $coleccionSecciones
-     */
-    public function setColeccionSecciones($coleccionSecciones)
-    {
-        $this->coleccionSecciones = $coleccionSecciones;
-    }
-
 
 }
