@@ -40,7 +40,7 @@ class Section
 
     private function autoCompletar()
     {
-        echo "Tiulen: " . "</br>";
+        echo "Titulen: " . "</br>";
         $this->setTitulo($this->completarTitulo());
         echo "Texten: " . "</br>";
         $this->setTexto($this->completarTexto());

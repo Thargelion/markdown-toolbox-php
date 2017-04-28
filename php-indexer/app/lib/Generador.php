@@ -57,14 +57,18 @@ class Generador
             while ($posicion < $posicionFinal) {
                 echo "<hr>";
                 $seccionAnterior = $this->getSeccionAnterior();
+                echo "Hay Hijo En el Anterior" .  $seccionAnterior['hayHijo'];
+                echo "</br> ID Seccion Anterior" . $seccionAnterior['id'];
                 if (array_key_exists('hayHijo', $seccionAnterior) && $seccionAnterior['hayHijo'] !== 0) {
-                    echo "CACACACACACA";
                     $seccionACargar = new Section($this->getTextoIngresado(), $nivel, $posicion, $id, $seccionAnterior['id']);
                 } else {
                     $seccionACargar = new Section($this->getTextoIngresado(), $nivel, $posicion, $id, $madre);
                 }
                 echo "TITULENGUE A Cargar: " . $seccionACargar->getTitulo() . "</br>";
                 $arrayACargar[$seccionACargar->getId()] = $seccionACargar->devolucionArray();
+                echo "<pre>";
+                var_dump($arrayACargar[$seccionACargar->getId()]);
+                echo "</pre>";
                 echo "Superior: " . $arrayACargar['superior'] . "</br>";
                 $id++;
                 $this->setSeccionAnterior($seccionACargar->devolucionArray());
