@@ -22,19 +22,10 @@ class Escritor
     public function __construct($texto)
     {
         $estructura = new Generador($texto);
-        $secciones = $estructura->getColeccionSecciones();
-        $cantSecciones = $secciones->length();
-        $texto = "";
-        for ($i = 0; $i < $cantSecciones; $i++) {
-            echo "Escritura paso: " . $i ."</br>";
-            try {
-                $texto = $texto . $secciones->getItem($i)->getTitulo();
-            } catch (KeyInvalidException $e) {
-                echo "El for del Escritor no encuentra el índice x.x";
-                break;
-            }
+        $secciones = $estructura->getArraySecciones();
+        foreach ($secciones as $index => $seccion) {
+            
         }
-        $this->setTexto($texto);
     }
 
     /**

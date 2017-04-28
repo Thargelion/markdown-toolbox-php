@@ -9,6 +9,7 @@
     <h3>Inserte el texto en formato MD</h3>
     <form action="app/app.php" method="POST" name="ingreso">
         <label for="texto">TEXTETE</label>
+        <br/>
         <textarea class="input" id="texto" name="input" content="">
         </textarea>
         <input type="submit" value="GO!">

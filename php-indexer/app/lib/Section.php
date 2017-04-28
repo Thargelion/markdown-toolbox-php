@@ -4,12 +4,15 @@ namespace app\lib;
 
 //use app\lib\Lector;
 
+include_once __DIR__ . "/Lector.php";
+
 /*
  * User: maximiliano
  * Date: 10/04/17
  * Time: 16:25
  * Nota: Se identifica una sección como cualquier subdivisión del texto mediante headers. Cada sección tendrá tantas subsecciones como subheaders contenga.
  */
+
 class Section
 {
     private $nivel = 0;
@@ -18,9 +21,10 @@ class Section
     private $ubicacionInicial = 0; //posición del plano donde se encuentra la sección a buscar
     private $materiaPrima = "";
     private $posicionFinalSeccion = 0;
-    private $superior;
+    private $superior = 0;
     private $id = 0;
     private $nivelHeaderMD = "";
+    private $hayHijo = 0;
 
     public function __construct(string $materiaPrima, int $nivel, int $ubicacion, int $id, int $madre)
     {
@@ -29,20 +33,26 @@ class Section
         $this->setUbicacionInicial($ubicacion);
         $this->setMateriaPrima($materiaPrima);
         $this->setNivel($nivel);
-        $this->construccionNivelHeaderMD();
+        $this->setNivelHeaderMD($this->construccionNivelHeaderMD($nivel));
         $this->autoCompletar();
+        $this->setPosicionFinalSeccion($this->buscadorFinalSeccion());
     }
 
     private function autoCompletar()
     {
+        echo "Tiulen: " . "</br>";
         $this->setTitulo($this->completarTitulo());
+        echo "Texten: " . "</br>";
         $this->setTexto($this->completarTexto());
+        $this->hayHijo();
     }
 
     private function completarTitulo(): string
     {
         $posicionFinal = $this->buscadorItineranciaSiguiente($this->getUbicacionInicial(), PHP_EOL);
-        $recorte = new Lector($this->getUbicacionInicial(), $posicionFinal, $this->getMateriaPrima());
+        //       echo "Posicion inicial título: " . $this->getUbicacionInicial() . "</br>";
+        //       echo "Posicion final título: " . $posicionFinal . "</br>";
+        $recorte = new Lector($this->getUbicacionInicial(), $posicionFinal - 1, $this->getMateriaPrima());
         $this->setUbicacionInicial($posicionFinal);
         return $recorte->getTexto();
     }
@@ -55,19 +65,46 @@ class Section
         return $recorte->getTexto();
     }
 
-    private function construccionNivelHeaderMD() //construye el nivel del header md en base al nivel de la sección
+    public function construccionNivelHeaderMD($nivel) //construye el nivel del header md en base al nivel de la sección
     {
-        $nivel = $this->getNivel();
-        $nivelHeaderMD = "#";
+        //       echo "Nivel recibido: " . $nivel . "</br>";
+        $nivelHeaderMD = "";
         for ($i = 0; $i < $nivel; $i++) {
             $nivelHeaderMD = $nivelHeaderMD . "#";
         }
-        $this->setNivelHeaderMD($nivelHeaderMD . " ");
+        return PHP_EOL . $nivelHeaderMD . " ";
     }
 
     private function buscadorItineranciaSiguiente($posicionInicial, $elementoABuscar): int
     {
         return stripos($this->getMateriaPrima(), $elementoABuscar, $posicionInicial);
+    }
+
+    private function buscadorFinalSeccion(): int
+    {
+        $inicio = $this->getUbicacionInicial();
+        $tituloMD = $this->getNivelHeaderMD();
+        $tamTituloMD = strlen($tituloMD);
+        echo "Inicio en seccion(): " . $inicio . "</br>";
+        echo "Nivel a Cargar: " . $tituloMD . "</br>";
+        $buscaFinal = $this->buscadorItineranciaSiguiente($inicio + $tamTituloMD, $tituloMD);
+        echo "BuscaFinal: " . $buscaFinal . "</br>";
+        if ($buscaFinal) {
+            return $buscaFinal;
+        } else {
+            return strlen($this->getMateriaPrima());
+        }
+    }
+
+    private function hayHijo()
+    {
+        $hijoABuscar = $this->construccionNivelHeaderMD($this->getNivel() + 1);
+        echo $hijoABuscar;
+        if (stripos($this->getTexto(), $hijoABuscar)) {
+            $this->setHayHijo(1);
+        } else {
+            $this->setHayHijo(0);
+        }
     }
 
     public function devolucionArray(): array
@@ -78,7 +115,8 @@ class Section
             'titulo' => $this->getTitulo(),
             'texto' => $this->getTexto(),
             'posicionFinalSeccion' => $this->getPosicionFinalSeccion(),
-            'superior' => $this->getSuperior()
+            'superior' => $this->getSuperior(),
+            'hayHijo' => $this->getHayHijo()
         );
     }
 
@@ -225,6 +263,22 @@ class Section
     public function setNivelHeaderMD(string $nivelHeaderMD)
     {
         $this->nivelHeaderMD = $nivelHeaderMD;
+    }
+
+    /**
+     * @return int
+     */
+    public function getHayHijo(): int
+    {
+        return $this->hayHijo;
+    }
+
+    /**
+     * @param int $hayHijo
+     */
+    public function setHayHijo(int $hayHijo)
+    {
+        $this->hayHijo = $hayHijo;
     }
 
 }

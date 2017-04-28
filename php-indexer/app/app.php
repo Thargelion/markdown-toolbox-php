@@ -1,10 +1,10 @@
 <?php
 namespace app;
-use app\lib\Escritor;
+//use app\lib\Escritor;
+use app\lib\Generador;
 
-include_once __DIR__ . '/lib/Generador.php';
-include_once __DIR__ . '/lib/Escritor.php';
-include_once __DIR__ . '/lib/Collection.php';
+include_once __DIR__ . "/lib/Generador.php";
+
 /**
  * Created by PhpStorm.
  * User: maximiliano
@@ -17,10 +17,13 @@ if (empty($_POST)) {
     exit();
 }
 $texto = $_POST['input'];
+/*
 $escritor = new Escritor($texto);
 $textoAEscribir = $escritor->getTexto();
+*/
+$test = new Generador($texto);
+$secciones = $test->getArraySecciones();
 ?>
-
 
 <!DOCTYPE html>
 <html>
@@ -30,8 +33,8 @@ $textoAEscribir = $escritor->getTexto();
 </head>
 <body>
 <h1>TEXTO GENERADO</h1>
+<?php echo "<pre>";  var_dump($secciones); echo "</pre>"; ?>
 <textarea readonly>
-    <?php echo $textoAEscribir; ?>
 </textarea>
 </body>
 </html>
