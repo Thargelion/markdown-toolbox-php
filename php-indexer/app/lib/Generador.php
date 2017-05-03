@@ -23,12 +23,9 @@ class Generador
     private $textoIngresado = '';
     private $posicion = 0;
     private $arraySecciones = array();
-    private $seccionAnterior = array();
-    private $posicionFinal = 0;
-    private $numSeccion = 0;
     private $nivel = 1;
 
-    public function __construct($textoIngresado) //iniciador del generador loco
+    public function __construct($textoIngresado, $posicion) //iniciador del generador loco
     {
         $this->setTextoIngresado($textoIngresado);
         $this->setPosicionFinal($this->getFinalDelTexto());
@@ -38,58 +35,57 @@ class Generador
 
     private function getFinalDelTexto(): int
     {
-        return strlen($this->getTextoIngresado()) - 1;
+        return strlen($this->getTextoIngresado());
     }
 
     private function armadoEstructura()
     {
-        echo "POSICION FINAL FINAL: " . $this->getPosicionFinal() . "</br>"; //DEBUG
-        $validador = 1; //INICIADOR VALIDADOR
-        $posicionFinal = $this->getPosicionFinal(); //POSICION DE INICIO DE LECTURA
-        $arrayACargar = array(); //INICIADOR ARRAY
-        $nivel = 1; //NIVEL INICIAL
-        $id = 1; //ID INICIAL
-        $madre = 0; // MADRE INICIAL
-        do {
-            $posicion = $this->getPosicion();
-            echo $posicion;
-            echo $posicionFinal;
-            while ($posicion < $posicionFinal) {
-                echo "<hr>";
-                $seccionAnterior = $this->getSeccionAnterior();
-                echo "Hay Hijo En el Anterior" .  $seccionAnterior['hayHijo'];
-                echo "</br> ID Seccion Anterior" . $seccionAnterior['id'];
-                if (array_key_exists('hayHijo', $seccionAnterior) && $seccionAnterior['hayHijo'] !== 0) {
-                    $seccionACargar = new Section($this->getTextoIngresado(), $nivel, $posicion, $id, $seccionAnterior['id']);
-                } else {
-                    $seccionACargar = new Section($this->getTextoIngresado(), $nivel, $posicion, $id, $madre);
-                }
-                echo "TITULENGUE A Cargar: " . $seccionACargar->getTitulo() . "</br>";
-                $arrayACargar[$seccionACargar->getId()] = $seccionACargar->devolucionArray();
-                echo "<pre>";
-                var_dump($arrayACargar[$seccionACargar->getId()]);
-                echo "</pre>";
-                echo "Superior: " . $arrayACargar['superior'] . "</br>";
+        $nivel = 0;
+        $id = 0;
+        $posicionInicial = $this->getPosicion();
+        $arrayDeSeccionesACargar = array(); //INICIADOR ARRAY
+        $seccionAnterior = array(); //Sección previamente cargada, para usar de referencia
+        $seccionesPorNivel = array();
+        $seccionesPorNivel[$nivel] = array();// Array con la cantidad de secciones que hay por nivellelel
+        $seccionInicial = array(
+            'id' => 0,
+            'nivel' => 0,
+            'titulo' => '',
+            'posicionFinalSeccion' => $this->getPosicionFinal(),
+            'superior' => 0,
+            'esMadre' => 1
+        );
+        $materiaPrima = $this->getTextoIngresado();
+        foreach ($seccionesPorNivel[$nivel] as $seccion) {
+            $cantidadDeSeccionesInternas = $this->contador($nivel + 1, $materiaPrima); // +1 ya que busco secciones de un nivel más alto
+            for ($i = 0; $i < $cantidadDeSeccionesInternas; $i++) {
                 $id++;
-                $this->setSeccionAnterior($seccionACargar->devolucionArray());
-                $posicion = $seccionACargar->getPosicionFinalSeccion();
-                if ($id > 10) {
-                    echo "ID: X.X";
-                    die;
-                }
+                $seccionACargar = new Section($materiaPrima, $nivel + 1, $posicionInicial, $id, $seccionesPorNivel[$nivel][$id]);
             }
-            $nivel++;
-            if (isset($seccionACargar)) {
-                $validador = stripos($this->getTextoIngresado(), $seccionACargar->construccionNivelHeaderMD($nivel));
-            }
-            echo "Posicion: " . $posicion . "</br>";
-            echo "Validador:" . $validador . "</br>";
-            if ($nivel > 10) {
-                echo "X.X";
-                die;
-            }
-        } while ($validador);
-        $this->setArraySecciones($arrayACargar);
+        }
+
+    }
+
+
+    public function construccionNivelHeaderMD($nivel) //construye el nivel del header md en base al nivel de la sección
+    {
+        //       echo "Nivel recibido: " . $nivel . "</br>";
+        $nivelHeaderMD = "";
+        for ($i = 0; $i < $nivel; $i++) {
+            $nivelHeaderMD = $nivelHeaderMD . "#";
+        }
+        return PHP_EOL . $nivelHeaderMD . " ";
+    }
+
+    private function contador(int $nivelActual, string $materiaPrima): int
+    {
+        $elementoABuscar = $this->construccionNivelHeaderMD($nivelActual);
+        return substr_count($materiaPrima, $elementoABuscar);
+    }
+
+    private function buscadorItineranciaSiguiente($posicionInicial, $elementoABuscar): int
+    {
+        return stripos($this->getMateriaPrima(), $elementoABuscar, $posicionInicial);
     }
 
     private function ordenadoEstructura()
