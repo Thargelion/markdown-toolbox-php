@@ -7,7 +7,7 @@ namespace app\lib;
  * Date: 10/04/17
  * Time: 17:18
  */
-class Lector
+class Cortador
 {
     private $posInicial = 0;
     private $posFinal = 0;
