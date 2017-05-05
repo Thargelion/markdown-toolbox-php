@@ -5,7 +5,7 @@ namespace app\lib;
 //use app\lib\Lector;
 
 include_once __DIR__ . '/Cortador.php';
-include_once __DIR__ . '/MarkdownTools.php';
+include_once __DIR__ . '/MarkdownUtilities.php';
 
 /*
  * User: maximiliano
@@ -34,10 +34,10 @@ class Section
         $this->setPosicionInicialSeccion($ubicacion);
         $this->setMateriaPrima($materiaPrima);
         $this->setNivel($nivel);
-        $MDTools = new MarkdownTools();
+        $MDTools = new MarkdownUtilities();
         $this->setNivelMD($MDTools->construccionNivelHeaderMD($nivel));
-        $this->autoCompletar();
         $this->setPosicionFinalSeccion($this->buscadorFinalSeccion());
+        $this->autoCompletar();
     }
 
     private function autoCompletar()
@@ -48,7 +48,9 @@ class Section
 
     private function completarTitulo(): string
     {
-        $posicionFinal = $this->buscadorItineranciaSiguiente($this->getPosicionInicialSeccion(), PHP_EOL);
+        $posicionFinal = $this->buscadorItineranciaSiguiente($this->getPosicionInicialSeccion(), PHP_EOL) - 1;
+        echo "Posicion Inicial Título: " . $this->getPosicionInicialSeccion() . "</br>";
+        echo "Posicion final Titulo: " . $posicionFinal . "</br>";
         $recorte = new Cortador($this->getPosicionInicialSeccion(), $posicionFinal, $this->getMateriaPrima());
         $this->setPosicionInicialSeccion($posicionFinal);
         return $recorte->getTexto();
@@ -58,11 +60,14 @@ class Section
     {
         $posicionInicial = $this->getPosicionInicialSeccion() + strlen($this->getNivelMD());
         $posicionFinal = $this->buscadorItineranciaSiguiente($posicionInicial, $this->getNivelMD());
+        echo "Posicion Inicial Texto: " . $posicionInicial . "</br>";
+        echo "Posicion Final Texto: " . $posicionFinal . "</br>";
+        echo "<hr>";
         $recorte = new Cortador($posicionInicial, $posicionFinal, $this->getMateriaPrima());
         return $recorte->getTexto();
     }
 
-    private function buscadorItineranciaSiguiente($posicionInicial, $elementoABuscar): int
+    private function buscadorItineranciaSiguiente(int $posicionInicial, string $elementoABuscar): int
     {
         return stripos($this->getMateriaPrima(), $elementoABuscar, $posicionInicial);
     }
@@ -73,12 +78,9 @@ class Section
         $inicio = $this->getPosicionInicialSeccion();
         $tituloMD = $this->getNivelMD();
         $tamTituloMD = strlen($tituloMD);
-        echo "TITULOMD: " . $tituloMD . "</br>";
-        echo "TA TITULO EME DE: " . $tamTituloMD . "</br>";
         $buscaFinal = $this->buscadorItineranciaSiguiente($inicio + $tamTituloMD, $tituloMD);
-        echo "BUSCA FINAL: " . $buscaFinal . "</br>";
         if ($buscaFinal) {
-            return $buscaFinal;
+            return $buscaFinal - 1;
         } else {
             return strlen($this->getMateriaPrima());
         }
@@ -97,7 +99,6 @@ class Section
             'esMadre' => $this->getEsMadre()
         );
     }
-
 
 
     /**

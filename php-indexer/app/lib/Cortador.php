@@ -16,10 +16,7 @@ class Cortador
     // Carga un recorte de texto
     public function __construct($posInicial, $posFinal, $textoALeer)
     {
-        echo "Pos Inicial Recorte" . $posInicial . "</br>";
-        echo "Pos Final Recorte" . $posFinal . "</br>";
         $lenght = $posFinal - $posInicial;
-        echo "Tamaño Recorte: " . $lenght . "</br>";
         $this->setTexto(substr($textoALeer, $posInicial, $lenght)); //corta el texto en base a las posiciones cargadas
     }
 
