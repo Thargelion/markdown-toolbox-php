@@ -8,9 +8,9 @@
 
 namespace app\lib;
 
-use app\lib\Collection;
+/*use app\lib\Collection;
 use app\lib\Generador;
-
+*/
 include_once __DIR__ . '/CollectionFiller.php';
 include_once __DIR__ . '/Generador.php';
 
@@ -18,14 +18,19 @@ class Escritor
 {
     private $materiaPrima = "";
     private $texto = "";
+    private $indice = array();
+    private $titulos = "";
 
     public function __construct($texto)
     {
         $estructura = new Generador($texto);
         $secciones = $estructura->getArraySecciones();
-        foreach ($secciones as $index => $seccion) {
-            
-        }
+        $this->generaIndice($secciones);
+    }
+
+    private function generaIndice($materiaPrima)
+    {
+
     }
 
     /**
@@ -58,6 +63,38 @@ class Escritor
     public function setTexto(string $texto)
     {
         $this->texto = $texto;
+    }
+
+    /**
+     * @return string
+     */
+    public function getIndice(): array
+    {
+        return $this->indice;
+    }
+
+    /**
+     * @param string $indice
+     */
+    public function setIndice(array $indice)
+    {
+        $this->indice = $indice;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTitulos(): string
+    {
+        return $this->titulos;
+    }
+
+    /**
+     * @param string $titulos
+     */
+    public function setTitulos(string $titulos)
+    {
+        $this->titulos = $titulos;
     }
 
 }

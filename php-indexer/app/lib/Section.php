@@ -22,16 +22,17 @@ class Section
     private $materiaPrima = "";
     private $posicionInicialSeccion = 0; //posición del plano donde se encuentra la sección a buscar
     private $posicionFinalSeccion = 0;
+    private $posicionInicialTexto = 0;
     private $superior = 0;
     private $id = 0;
     private $nivelMD = "";
-    private $esMadre = 0;
+    private $esBoludo = 0;
 
-    public function __construct(string $materiaPrima, int $nivel, int $ubicacion, int $id, int $madre)
+    public function __construct(string $materiaPrima, int $nivel, int $id, int $madre)
     {
         $this->setSuperior($madre);
         $this->setId($id);
-        $this->setPosicionInicialSeccion($ubicacion);
+        $this->setPosicionInicialSeccion(0);
         $this->setMateriaPrima($materiaPrima);
         $this->setNivel($nivel);
         $MDTools = new MarkdownUtilities();
@@ -48,22 +49,24 @@ class Section
 
     private function completarTitulo(): string
     {
-        $posicionFinal = $this->buscadorItineranciaSiguiente($this->getPosicionInicialSeccion(), PHP_EOL) - 1;
-        echo "Posicion Inicial Título: " . $this->getPosicionInicialSeccion() . "</br>";
-        echo "Posicion final Titulo: " . $posicionFinal . "</br>";
-        $recorte = new Cortador($this->getPosicionInicialSeccion(), $posicionFinal, $this->getMateriaPrima());
-        $this->setPosicionInicialSeccion($posicionFinal);
+        $posicionInicial = $this->buscadorItineranciaSiguiente($this->getPosicionInicialSeccion(), $this->getNivelMD());
+        $posicionFinal = $this->buscadorItineranciaSiguiente($posicionInicial + strlen($this->getNivelMD()), PHP_EOL);
+        $this->setPosicionInicialTexto($posicionFinal + 1);
+        $recorte = new Cortador($posicionInicial, $posicionFinal, $this->getMateriaPrima());
         return $recorte->getTexto();
     }
 
     private function completarTexto(): string
     {
-        $posicionInicial = $this->getPosicionInicialSeccion() + strlen($this->getNivelMD());
-        $posicionFinal = $this->buscadorItineranciaSiguiente($posicionInicial, $this->getNivelMD());
-        echo "Posicion Inicial Texto: " . $posicionInicial . "</br>";
-        echo "Posicion Final Texto: " . $posicionFinal . "</br>";
-        echo "<hr>";
-        $recorte = new Cortador($posicionInicial, $posicionFinal, $this->getMateriaPrima());
+        $posicionInicialTexto = $this->getPosicionInicialTexto();
+        $tamMD = strlen($this->getNivelMD());
+        $this->setPosicionInicialTexto($posicionInicialTexto);
+        $posicionFinal = $this->buscadorItineranciaSiguiente($posicionInicialTexto + $tamMD, $this->getNivelMD());
+        if (!$posicionFinal)
+            $posicionFinal = strlen($this->getMateriaPrima());
+        $this->setPosicionFinalSeccion($posicionFinal);
+        $posicionFinal = $posicionFinal - strlen($this->getTitulo());
+        $recorte = new Cortador($posicionInicialTexto, $posicionFinal, $this->getMateriaPrima());
         return $recorte->getTexto();
     }
 
@@ -95,8 +98,8 @@ class Section
             'texto' => $this->getTexto(),
             'posicionInicialSeccion' => $this->getPosicionInicialSeccion(),
             'posicionFinalSeccion' => $this->getPosicionFinalSeccion(),
-            'superior' => $this->getSuperior(),
-            'esMadre' => $this->getEsMadre()
+            'posicionInicialTexto' => $this->getPosicionInicialTexto(),
+            'superior' => $this->getSuperior()
         );
     }
 
@@ -184,6 +187,22 @@ class Section
     /**
      * @return int
      */
+    public function getPosicionInicialTexto(): int
+    {
+        return $this->posicionInicialTexto;
+    }
+
+    /**
+     * @param int $posicionInicialTexto
+     */
+    public function setPosicionInicialTexto(int $posicionInicialTexto)
+    {
+        $this->posicionInicialTexto = $posicionInicialTexto;
+    }
+
+    /**
+     * @return int
+     */
     public function getPosicionFinalSeccion(): int
     {
         return $this->posicionFinalSeccion;
@@ -249,17 +268,17 @@ class Section
     /**
      * @return int
      */
-    public function getEsMadre(): int
+    public function getEsBoludo(): int
     {
-        return $this->esMadre;
+        return $this->esBoludo;
     }
 
     /**
-     * @param int $esMadre
+     * @param int $esBoludo
      */
-    public function setEsMadre(int $esMadre)
+    public function setEsBoludo(int $esBoludo)
     {
-        $this->esMadre = $esMadre;
+        $this->esBoludo = $esBoludo;
     }
 
 }

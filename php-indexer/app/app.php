@@ -33,9 +33,10 @@ $secciones = $test->getArraySecciones();
 </head>
 <body>
 <h1>TEXTO GENERADO</h1>
-<?php var_dump($secciones);?>
-<textarea readonly>
-</textarea>
+<?php
+foreach ($secciones as $seccion) {
+}
+?>
 </body>
 </html>
 

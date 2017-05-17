@@ -16,8 +16,9 @@ class Cortador
     // Carga un recorte de texto
     public function __construct($posInicial, $posFinal, $textoALeer)
     {
-        $lenght = $posFinal - $posInicial;
-        $this->setTexto(substr($textoALeer, $posInicial, $lenght)); //corta el texto en base a las posiciones cargadas
+        if(!$posFinal)
+            $posFinal = strlen($textoALeer);
+        $this->setTexto(substr($textoALeer, $posInicial, $posFinal)); //corta el texto en base a las posiciones cargadas
     }
 
     /**

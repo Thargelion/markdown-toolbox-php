@@ -28,19 +28,21 @@ class Generador
     private $nivel = 0;
     private $nivelSiguiente = 1;
     private $nivelMD = "";
-    private $id = 1;
+    private $id = 0;
+    private $posicionFinal = 0;
 
     public function __construct(string $textoIngresado) //iniciador del generador loco
     {
         $this->setPosicionFinal($this->calcularFinalDelTexto($textoIngresado));
         $this->setPosicionInicial($this->ubicarPosicionInicialDelTexto($textoIngresado));
         $recorte = new Cortador($this->getPosicionInicial(), $this->getPosicionFinal(), $textoIngresado);
-        $textoIngresado = $recorte->getTexto();
+        $textoIngresado = PHP_EOL . $recorte->getTexto();
         $this->setTextoIngresado($textoIngresado);
         $this->setPosicionInicial($this->ubicarPosicionInicialDelTexto($textoIngresado));
         $this->setPosicionFinal($this->calcularFinalDelTexto($textoIngresado));
         $this->armadoEstructura();
         $this->ordenadoEstructura();
+        var_dump($this->getArraySecciones());
     }
 
     private function calcularFinalDelTexto(string $materiaPrima): int
@@ -58,27 +60,28 @@ class Generador
     {
         $secciones[][] = array();// Array con la cantidad de secciones que hay por nivellelel
         $seccionInicial = array( //Seccion madre de todas las secciones, la #0
-            'id' => 0,
+            'id' => $this->getId(),
             'nivel' => 0,
             'titulo' => '',
             'texto' => $this->getTextoIngresado(),
             'posicionInicialSeccion' => $this->getPosicionInicial(),
             'posicionFinalSeccion' => $this->getPosicionFinal(),
-            'superior' => 0,
-            'esMadre' => 1
+            'posicionInicialTexto' => 0,
+            'superior' => 0
         );
         $secciones[0][$seccionInicial['id']] = $seccionInicial;
+        $this->setId(1);
         for ($i = 0; $i < 6; $i++) { //RECORRE NIVELES
             foreach ($secciones[$i] as $seccionMadre) { //RECORRE SECCIONES POR NIVEL
-                // $nivel = $this->getNivel();
+                $id = $this->getId();
                 $nivelSiguiente = $this->getNivelSiguiente();
-                $idNuevo = $this->getId() + 1;
-                $secciones[$nivelSiguiente] = $this->seccionesInternas($nivelSiguiente, $seccionMadre['texto'], $idNuevo, $seccionMadre['posicionInicialSeccion'], $seccionMadre['id']);
-                $this->setId($idNuevo);
-            }
-            if (end($secciones[$this->getNivelSiguiente()])) {
-                $ultimaSeccion = end($secciones[$this->getNivelSiguiente()]);
-                $this->setId($ultimaSeccion['id']);
+                $hijasACargar = $this->seccionesInternas($nivelSiguiente, PHP_EOL . $seccionMadre['titulo'] . $seccionMadre['texto'], $id, $seccionMadre['id']);
+                if ($secciones[$nivelSiguiente]) { //determina si hay hay una sección cargada en el nivel siguiente para no "sumar" un array nulo
+                    $merge = $secciones[$nivelSiguiente] + $hijasACargar;
+                    $secciones[$nivelSiguiente] = $merge;
+                } else {
+                    $secciones[$nivelSiguiente] = $hijasACargar;
+                }
             }
             $this->setNivel($this->getNivel() + 1);
             $this->setNivelSiguiente($this->getNivelSiguiente() + 1);
@@ -87,16 +90,21 @@ class Generador
     }
 
     // Función que devuelve un array con todas las secciones internas de una sección. Para instanciar secciones, toma la información de la sección madre
-    private function seccionesInternas(int $nivelABuscar, string $materiaPrima, int $id, int $posicionInicial, int $madre)
+    private function seccionesInternas(int $nivelABuscar, string $materiaPrima, int $id, int $madre)
     {
+        $puntero = 0;
         $seccionesHijas = array();
+        $posicionFinal = strlen($materiaPrima);
         $cantidadDeSeccionesInternas = $this->contador($nivelABuscar, $materiaPrima);
         for ($i = 0; $i < $cantidadDeSeccionesInternas; $i++) {
-            $seccionACargar = new Section($materiaPrima, $nivelABuscar, $posicionInicial, $id, $madre);
+            $recorteDeSeccion = new Cortador($puntero, $posicionFinal, $materiaPrima);
+            $subSeccion = $recorteDeSeccion->getTexto();
+            $seccionACargar = new Section($subSeccion, $nivelABuscar, $id, $madre);
+            $puntero = $puntero + $seccionACargar->getPosicionFinalSeccion();
             $seccionesHijas[$id] = $seccionACargar->devolucionArray();
-            $posicionInicial = 9; //PROBLEMA
             $id++;
         }
+        $this->setId($id);
         return $seccionesHijas;
     }
 
@@ -129,9 +137,13 @@ class Generador
         }
 
         $secciones = $this->getArraySecciones();
-        usort($secciones, "ordenaElementosPorId");
-        usort($secciones, "ordenaElementosPorMadre");
-        $this->setArraySecciones($secciones);
+        $meltSecciones = $secciones[0]; // unifico los uniersos del array =0
+        for ($i = 1; $i < 6; $i++) {
+                $meltSecciones = $secciones[$i] + $meltSecciones;
+        }
+        usort($meltSecciones, "ordenaElementosPorId");
+        usort($meltSecciones, "ordenaElementosPorMadre");
+        $this->setArraySecciones($meltSecciones);
     }
 
     /**
@@ -228,15 +240,6 @@ class Generador
     public function setPosicionFinal(int $posicionFinal)
     {
         $this->posicionFinal = $posicionFinal;
-    }
-
-
-    /**
-     * @return int
-     */
-    public function getNumSeccion(): int
-    {
-        return $this->numSeccion;
     }
 
 
