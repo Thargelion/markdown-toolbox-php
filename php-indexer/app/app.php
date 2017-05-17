@@ -22,7 +22,7 @@ $escritor = new Escritor($texto);
 $textoAEscribir = $escritor->getTexto();
 */
 $test = new Generador($texto);
-$secciones = $test->getArraySecciones();
+$indice = $test->arrayIndice();
 ?>
 
 <!DOCTYPE html>
@@ -34,7 +34,10 @@ $secciones = $test->getArraySecciones();
 <body>
 <h1>TEXTO GENERADO</h1>
 <?php
-foreach ($secciones as $seccion) {
+echo "<hr>";
+var_dump($indice);
+foreach ($indice as $seccion) {
+    echo $seccion['titulo'] . "</br>";
 }
 ?>
 </body>

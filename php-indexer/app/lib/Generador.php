@@ -42,7 +42,6 @@ class Generador
         $this->setPosicionFinal($this->calcularFinalDelTexto($textoIngresado));
         $this->armadoEstructura();
         $this->ordenadoEstructura();
-        var_dump($this->getArraySecciones());
     }
 
     private function calcularFinalDelTexto(string $materiaPrima): int
@@ -137,13 +136,26 @@ class Generador
         }
 
         $secciones = $this->getArraySecciones();
-        $meltSecciones = $secciones[0]; // unifico los uniersos del array =0
-        for ($i = 1; $i < 6; $i++) {
-                $meltSecciones = $secciones[$i] + $meltSecciones;
+        $meltSecciones = $secciones[1]; // unifico los uniersos del array =0
+        for ($i = 2; $i < 6; $i++) {
+            if (is_array($secciones[$i]) && isset($secciones[$i]))
+                $meltSecciones = $meltSecciones + $secciones[$i];
         }
-        usort($meltSecciones, "ordenaElementosPorId");
-        usort($meltSecciones, "ordenaElementosPorMadre");
+        //usort($meltSecciones, "ordenaElementosPorId");
+        //usort($meltSecciones, "ordenaElementosPorMadre");
+        var_dump($meltSecciones);
         $this->setArraySecciones($meltSecciones);
+    }
+
+    public function arrayIndice(): array
+    {
+        $secciones = $this->getArraySecciones();
+        $indice = $secciones[1];
+        for ($i = 2; $i < 6; $i++) {
+            if (is_array($secciones[$i]))
+                $indice = $indice + $secciones[$i];
+        }
+        return $indice;
     }
 
     /**
